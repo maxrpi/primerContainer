@@ -12,7 +12,6 @@
 #include "PlotStuff.h"
 #include "display.h"
 #include "ParallelUtility.h"
-#include "sendToHDF5.h"
 #include <stdlib.h>
 #include "inAndOut.h"
 
@@ -92,22 +91,30 @@ int main(int argc, char *argv[])
     int ny = d(1,1) - d(0,1);
     int k = vertexLocal.getBase(3);
 
-    int interior_box[2][numberOfDimensions] = {{ gir(0,0), gir(0,1) },
-                                               { gir(1,0), gir(1,1) }};
-    int domain_box[2][numberOfDimensions] = {  { d(0,0), d(0,1) },
-                                               { d(1,0), d(1,1) }};
+    int **interior_box = (int **) malloc(sizeof(int *) * 2);
+    interior_box[0] = (int *) malloc(sizeof(int) * numberOfDimensions);
+    interior_box[1] = (int *) malloc(sizeof(int) * numberOfDimensions);
+    int **domain_box = (int **) malloc(sizeof(int *) * 2);
+    domain_box[0] = (int *) malloc(sizeof(int) * numberOfDimensions);
+    domain_box[1] = (int *) malloc(sizeof(int) * numberOfDimensions);
+
+    for (int i=0; i<2; i++)
+      for (int j=0; j<numberOfDimensions; j++){
+        interior_box[i][j] = gir(i,j)-d(0,j);
+        domain_box[i][j] = d(i,j)-d(0,j);
+      }
 
     // Note that k below is just 0, not a real loop index. Only one Z index.
     int  **desc = (int **) malloc( sizeof(int   *) * (d(1,0) - d(0,0) + 1));
     double ***xy = (double ***) malloc( sizeof(double**) * (d(1,0) - d(0,0) + 1));
-    for(int i=d(0,0); i <= d(1,0); i++){
+    for(int i=0; i <= d(1,0) - d(0,0); i++){
       *(desc+i) = (int *) malloc( sizeof(int   *) * (d(1,1) - d(0,1) + 1) );
       *(xy + i) = (double **) malloc( sizeof(double*) * (d(1,1) - d(0,1) + 1) );
-      for(int j = d(0,1); j <= d(1,1); j++){
-        desc[i][j] = maskLocal(i, j, k);
+      for(int j = 0; j <= d(1,1) - d(0,1); j++){
+        desc[i][j] = maskLocal(i + d(0,0), j + d(0,1), k);
         *(*(xy   + i) + j) = (double *) malloc( sizeof(double) * numberOfDimensions);
         for(int l = 0; l < numberOfDimensions; l++){
-          xy[i][j][l] = vertexLocal(i, j, k, l);
+          xy[i][j][l] = vertexLocal(i + d(0,0), j + d(0,1), k + d(0,2), l);
         }
 
       }
@@ -115,7 +122,7 @@ int main(int argc, char *argv[])
     std::cout << interior_box[0][0] << interior_box[0][1] 
       << interior_box[1][0] << interior_box[1][1] 
       << std::endl;
-    int status = sendToFile(fileName, numberOfDimensions, (int **)interior_box, (int **)domain_box, xy, desc);
+    int status = sendToFile(fileName, numberOfDimensions, interior_box, domain_box, xy, desc);
 
     c.destroy(MappedGrid::THEvertex | MappedGrid::THEmask );  // destroy arrays to save space
 
