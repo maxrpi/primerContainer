@@ -80,8 +80,8 @@ int getFromFile(const char* fileName, int *dim, int **interior_box, int **domain
     for(int j = 0; j <= *(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1); j++){
       for(int k = 0; k < *dim; k++){
         in >> d;
-        *(*xy + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) 
-                    + j * 2 
+        *(*xy + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) * 2 * 1
+                    + j * 2 * 1
                     + k * 1) = d;
       }
     }
@@ -93,7 +93,7 @@ int getFromFile(const char* fileName, int *dim, int **interior_box, int **domain
 
   for(int i=0; i <= *(*domain_box + 2*1 + 0) - *(*domain_box + 2*0 + 0); i++){
     for(int j = 0; j <= *(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1); j++){
-      in >> *(*mask + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) 
+      in >> *(*mask + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) * 1 
                     + j * 1);
     }
   }

@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
       *(desc+i) = (int *) malloc( sizeof(int   *) * (d(1,1) - d(0,1) + 1) );
       *(xy + i) = (double **) malloc( sizeof(double*) * (d(1,1) - d(0,1) + 1) );
       for(int j = 0; j <= d(1,1) - d(0,1); j++){
-        desc[i][j] = maskLocal(i + d(0,0), j + d(0,1), k);
+        desc[i][j] = maskLocal(i + d(0,0), j + d(0,1), k) >= 0 ? 0: 1;
         *(*(xy   + i) + j) = (double *) malloc( sizeof(double) * numberOfDimensions);
         for(int l = 0; l < numberOfDimensions; l++){
           xy[i][j][l] = vertexLocal(i + d(0,0), j + d(0,1), k + d(0,2), l);
