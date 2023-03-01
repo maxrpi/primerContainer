@@ -32,12 +32,13 @@ main(int argc, char *argv[])
   }
 
   int dim;
-  int **interior_box;
-  int **domain_box;
-  double ***xy;
-  int **mask;
+  int *interior_box;
+  int *domain_box;
+  double *xy;
+  int *mask;
 
-  int status = getFromFile(fileName, &dim, interior_box, domain_box, xy, mask);
+  int status = getFromFile(fileName, &dim, &interior_box, &domain_box, &xy, &mask);
+
   status =  sendToHDF5(outhdf, dim, interior_box, domain_box, xy, mask);
   
   return 0;

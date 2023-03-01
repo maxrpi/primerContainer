@@ -45,7 +45,7 @@ int sendToFile(const char* fileName, int dim, int **interior_box, int **domain_b
   
 }
 
-int getFromFile(const char* fileName, int *dim, int **interior_box, int **domain_box, double ***xy, int **mask){
+int getFromFile(const char* fileName, int *dim, int **interior_box, int **domain_box, double **xy, int **mask){
   std::ifstream in;
 
   in.open(fileName);
@@ -55,43 +55,49 @@ int getFromFile(const char* fileName, int *dim, int **interior_box, int **domain
   }
 
   in >> *dim;
-  interior_box = (int **) malloc(sizeof(int *) * 2);
-  interior_box[0] = (int *) malloc(sizeof(int) * *dim);
-  interior_box[1] = (int *) malloc(sizeof(int) * *dim);
-  domain_box = (int **) malloc(sizeof(int *) * 2);
-  domain_box[0] = (int *) malloc(sizeof(int) * *dim);
-  domain_box[1] = (int *) malloc(sizeof(int) * *dim);
+  *interior_box = (int *) malloc(sizeof(int) * 2 * *dim);
+  *domain_box   = (int *) malloc(sizeof(int) * 2 * *dim);
 
   for (int i=0; i<2; i++){
     for (int j=0; j<*dim; j++){
-      in >> interior_box[i][j];
+      in >> *(*interior_box + (2*i) + j);
     }
   }
 
   for (int i=0; i<2; i++){
     for (int j=0; j<*dim; j++){
-      in >> domain_box[i][j];
+      in >> *(*domain_box + (2*i) + j);
     }
   }
 
-  xy = (double ***) malloc( sizeof(double**) * (domain_box[1][0] - domain_box[0][0] + 1) );
-  for(int i=0; i <= domain_box[1][0] - domain_box[0][0]; i++){
-    *(xy + i) = (double **) malloc( sizeof(double*) * (domain_box[1][1] - domain_box[0][1] + 1) );
-    for(int j = 0; j <= domain_box[1][1] - domain_box[0][1]; j++){
-      *(*(xy + i)+j) = (double *) malloc( sizeof(double*) * *dim);
+  *xy = (double *) malloc(sizeof(double) *
+                         (*(*domain_box + 2*1 + 0) - *(*domain_box + 2*0 + 0) + 1) *
+                         (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1) + 1) *
+                         *dim);
+
+  double d;
+  for(int i=0; i <= *(*domain_box + 2*1 + 0) - *(*domain_box + 2*0 + 0); i++){
+    for(int j = 0; j <= *(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1); j++){
       for(int k = 0; k < *dim; k++){
-        in >> xy[i][j][k];
+        in >> d;
+        *(*xy + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) 
+                    + j * 2 
+                    + k * 1) = d;
       }
     }
   }
 
-  mask = (int **) malloc( sizeof(int   *) * (domain_box[1][0] - domain_box[0][0] + 1) );
-  for(int i=0; i <= domain_box[1][0] - domain_box[0][0]; i++){
-    *(mask+i) = (int *) malloc( sizeof(int   *) * (domain_box[1][1] - domain_box[0][1] + 1) );
-    for(int j = 0; j <= domain_box[1][1] - domain_box[0][1]; j++){
-      in >> mask[i][j];
+  *mask = (int *) malloc(sizeof(double) *
+                         (*(*domain_box + 2*1 + 0) - *(*domain_box + 2*0 + 0) + 1) *
+                         (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1) + 1));
+
+  for(int i=0; i <= *(*domain_box + 2*1 + 0) - *(*domain_box + 2*0 + 0); i++){
+    for(int j = 0; j <= *(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1); j++){
+      in >> *(*mask + i * (*(*domain_box + 2*1 + 1) - *(*domain_box + 2*0 + 1)) 
+                    + j * 1);
     }
   }
+
   in.close();
   return 0;
 }

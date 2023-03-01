@@ -14,10 +14,10 @@ using namespace H5;
 
 int sendToHDF5(std::string filename,
               int spacedim,
-              int **interior_box,
-              int **domain_box,
-              double ***xy,
-              int **mask)
+              int *interior_box,
+              int *domain_box,
+              double *xy,
+              int *mask)
 {
   try
   {
@@ -27,37 +27,37 @@ int sendToHDF5(std::string filename,
     // Create dataspace for dataset in file.
 
     DataSet *dataset;
+
+    hsize_t boxsize[] = {2, 2};
+    DataSpace boxspace(2, boxsize);
+    dataset = new DataSet( file->createDataSet( "interior_box", PredType::NATIVE_INT, boxspace ) );
+    dataset->write( interior_box, PredType::NATIVE_INT );
+    delete dataset;
+
     hsize_t dimsize[] = {1};
     DataSpace fspace(1, dimsize );
     dataset = new DataSet( file->createDataSet( "dim", PredType::NATIVE_INT, fspace ) );
     dataset->write( &spacedim, PredType::NATIVE_INT );
     delete dataset;
 
-    hsize_t boxsize[] = {2, 2};
-    DataSpace boxspace(1, boxsize);
-    dataset = new DataSet( file->createDataSet( "interior_box", PredType::NATIVE_INT, boxspace ) );
-    dataset->write( interior_box, PredType::NATIVE_INT );
-    delete dataset;
-
     dataset = new DataSet( file->createDataSet( "domain_box", PredType::NATIVE_INT, boxspace ) );
     dataset->write( domain_box, PredType::NATIVE_INT );
     delete dataset;
 
-    int nx = domain_box[1][0] - domain_box[0][0];
-    int ny = domain_box[1][1] - domain_box[0][1];
+    int nx = *(domain_box + 2*1 + 0) - *(domain_box + 2*0 + 0);
+    int ny = *(domain_box + 2*1 + 1) - *(domain_box + 2*0 + 1);
     hsize_t gridsize[] = {nx, ny};
     DataSpace xyspace(spacedim, gridsize);
     dataset = new DataSet( file->createDataSet( "xy", PredType::NATIVE_DOUBLE, xyspace ) );
     dataset->write( xy, PredType::NATIVE_DOUBLE );
     delete dataset;
 
-    DataSpace maskspace(1, gridsize);
+    DataSpace maskspace(2, gridsize);
     dataset = new DataSet( file->createDataSet( "mask", PredType::NATIVE_INT, maskspace ) );
     dataset->write( mask, PredType::NATIVE_INT );
     delete dataset;
 
-    delete dataset;
-    delete file;
+    file->close();
   } 
 
    // catch failure caused by the DataSet operations
